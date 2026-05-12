@@ -61,7 +61,8 @@ class EventsController extends Controller
     {
         $event = Event::create($this->eventData($request));
 
-        $request->session()->flash('success', 'Event "' . $event->title . '" has been saved.');
+        $message = $event->status === 'published' ? 'published' : 'saved as draft';
+        $request->session()->flash('success', 'Event "' . $event->title . '" has been ' . $message . '.');
 
         return redirect()->route('admin.events');
     }
@@ -81,7 +82,8 @@ class EventsController extends Controller
     {
         $event->update($this->eventData($request));
 
-        $request->session()->flash('success', 'Event "' . $event->title . '" has been updated.');
+        $message = $event->status === 'published' ? 'updated and published' : 'updated as draft';
+        $request->session()->flash('success', 'Event "' . $event->title . '" has been ' . $message . '.');
 
         return redirect()->route('admin.events');
     }
@@ -104,13 +106,16 @@ class EventsController extends Controller
      */
     private function eventData(Request $request): array
     {
+        $status = $request->input('status', 'draft');
+        $requiredWhenPublishing = $status === 'published' ? ['required'] : ['nullable'];
+
         $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
+            'title' => [...$requiredWhenPublishing, 'string', 'max:255'],
             'category' => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string'],
             'audience' => ['nullable', 'string', 'max:255'],
             'visibility' => ['required', Rule::in(['public', 'private'])],
-            'start_date' => ['required', 'date'],
+            'start_date' => [...$requiredWhenPublishing, 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'location' => ['nullable', 'string', 'max:255'],
             'meeting_link' => ['nullable', 'url', 'max:255'],
@@ -131,10 +136,54 @@ class EventsController extends Controller
             'status' => ['nullable', Rule::in(['draft', 'published'])],
         ]);
 
+        $validated['title'] = $validated['title'] ?: 'Untitled draft event';
         $validated['waitlist_enabled'] = $request->boolean('waitlist');
         $validated['registration_limit'] = $validated['registration_limit'] ?? 1;
-        $validated['status'] = $validated['status'] ?? 'draft';
+        $validated['status'] = $status;
 
         return $validated;
+    }
+
+    /**
+     * Get events as JSON for calendar display.
+     */
+    public function calendarEvents(Request $request)
+    {
+        $events = Event::query()
+            ->where('status', 'published')
+            ->whereNotNull('start_date')
+            ->orderBy('start_date')
+            ->get();
+
+        $calendarEvents = $events->map(function ($event) {
+            $color = match ($event->category) {
+                'JH Kids' => '#2563eb',
+                'SMART Recovery' => '#059669',
+                'Movement Program' => '#d97706',
+                'Parent Program' => '#7c3aed',
+                'Community Workshop' => '#db2777',
+                default => '#2563eb',
+            };
+
+            return [
+                'id' => $event->id,
+                'title' => $event->title,
+                'start' => $event->start_date?->format('Y-m-d\TH:i:s'),
+                'end' => $event->end_date?->format('Y-m-d\TH:i:s') ?? $event->start_date?->format('Y-m-d\TH:i:s'),
+                'backgroundColor' => $color,
+                'borderColor' => $color,
+                'textColor' => '#ffffff',
+                'extendedProps' => [
+                    'description' => $event->description,
+                    'location' => $event->location,
+                    'capacity' => $event->capacity,
+                    'category' => $event->category,
+                    'status' => $event->status,
+                    'visibility' => $event->visibility,
+                ],
+            ];
+        });
+
+        return response()->json($calendarEvents);
     }
 }

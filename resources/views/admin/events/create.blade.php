@@ -100,7 +100,14 @@
 @if ($errors->any())
     <div class="alert-box alert-danger fade-in">
         <i class="fas fa-exclamation-circle"></i>
-        <span>Please review the highlighted fields and try again.</span>
+        <div>
+            <div style="font-weight: 700; margin-bottom: 6px;">Please review the highlighted fields and try again.</div>
+            <ul style="margin: 0; padding-left: 18px;">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
     </div>
 @endif
 
@@ -109,6 +116,7 @@
     @if ($isEditing)
         @method('PUT')
     @endif
+    <input type="hidden" id="statusField" name="status" value="draft">
 
     <div class="card">
         <div class="card-body" style="padding: 0;">
@@ -143,7 +151,7 @@
                     <div class="row">
                         <div class="col-lg-8 mb-3">
                             <label class="form-label" for="title">Event Title <span style="color: var(--danger-color);">*</span></label>
-                            <input type="text" class="form-control @error('title') is-invalid @enderror" id="title" name="title" value="{{ $field('title') }}" placeholder="e.g. JH Kids Creative Workshop" required>
+                            <input type="text" class="form-control @error('title') is-invalid @enderror" id="title" name="title" value="{{ $field('title') }}" placeholder="e.g. JH Kids Creative Workshop">
                             @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-lg-4 mb-3">
@@ -189,7 +197,7 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label" for="start_date">Start Date & Time <span style="color: var(--danger-color);">*</span></label>
-                            <input type="datetime-local" class="form-control @error('start_date') is-invalid @enderror" id="start_date" name="start_date" value="{{ $dateField('start_date') }}" required>
+                            <input type="datetime-local" class="form-control @error('start_date') is-invalid @enderror" id="start_date" name="start_date" value="{{ $dateField('start_date') }}">
                             @error('start_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-6 mb-3">
@@ -322,18 +330,15 @@
     </div>
 
     <div class="tab-actions">
-        <button type="button" class="btn btn-secondary" id="previousTab">
-            <i class="fas fa-arrow-left"></i> Previous
-        </button>
+        <a href="{{ route('admin.events') }}" class="btn btn-secondary">
+            <i class="fas fa-times"></i> Cancel
+        </a>
         <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
-            <button type="submit" name="status" value="draft" class="btn btn-secondary">
-                <i class="fas fa-save"></i> {{ $isEditing ? 'Update Draft' : 'Save Draft' }}
+            <button type="submit" class="btn btn-secondary" id="saveDraftBtn" onclick="setStatus('draft')">
+                <i class="fas fa-save"></i> Save as Draft
             </button>
-            <button type="button" class="btn btn-primary" id="nextTab">
-                Next <i class="fas fa-arrow-right"></i>
-            </button>
-            <button type="submit" name="status" value="published" class="btn btn-primary" id="submitEvent" style="display: none;">
-                <i class="fas fa-paper-plane"></i> {{ $isEditing ? 'Update & Publish' : 'Publish Event' }}
+            <button type="submit" class="btn btn-primary" id="publishBtn" onclick="setStatus('published')">
+                <i class="fas fa-check-circle"></i> {{ $isEditing ? 'Update & Publish' : 'Publish Event' }}
             </button>
         </div>
     </div>
@@ -342,40 +347,45 @@
 
 @section('scripts')
 <script>
+    function setStatus(status) {
+        document.getElementById('statusField').value = status;
+    }
+
     const tabButtons = Array.from(document.querySelectorAll('#eventTabs button[data-bs-toggle="tab"]'));
-    const previousButton = document.getElementById('previousTab');
-    const nextButton = document.getElementById('nextTab');
-    const submitButton = document.getElementById('submitEvent');
 
     function currentTabIndex() {
         return tabButtons.findIndex((button) => button.classList.contains('active'));
     }
 
-    function updateTabActions() {
-        const index = currentTabIndex();
-        previousButton.disabled = index === 0;
-        nextButton.style.display = index === tabButtons.length - 1 ? 'none' : 'inline-flex';
-        submitButton.style.display = index === tabButtons.length - 1 ? 'inline-flex' : 'none';
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.altKey) {
+            if (e.key === 'ArrowRight' || e.key === '.') {
+                const index = currentTabIndex();
+                if (index < tabButtons.length - 1) {
+                    e.preventDefault();
+                    bootstrap.Tab.getOrCreateInstance(tabButtons[index + 1]).show();
+                }
+            } else if (e.key === 'ArrowLeft' || e.key === ',') {
+                const index = currentTabIndex();
+                if (index > 0) {
+                    e.preventDefault();
+                    bootstrap.Tab.getOrCreateInstance(tabButtons[index - 1]).show();
+                }
+            }
+        }
+    });
+
+    const firstInvalidField = document.querySelector('.tab-pane .is-invalid');
+
+    if (firstInvalidField) {
+        const invalidTabPane = firstInvalidField.closest('.tab-pane');
+        const invalidTabButton = document.querySelector(`[data-bs-target="#${invalidTabPane.id}"]`);
+
+        if (invalidTabButton) {
+            bootstrap.Tab.getOrCreateInstance(invalidTabButton).show();
+            firstInvalidField.focus({ preventScroll: true });
+        }
     }
-
-    previousButton.addEventListener('click', () => {
-        const index = currentTabIndex();
-        if (index > 0) {
-            bootstrap.Tab.getOrCreateInstance(tabButtons[index - 1]).show();
-        }
-    });
-
-    nextButton.addEventListener('click', () => {
-        const index = currentTabIndex();
-        if (index < tabButtons.length - 1) {
-            bootstrap.Tab.getOrCreateInstance(tabButtons[index + 1]).show();
-        }
-    });
-
-    tabButtons.forEach((button) => {
-        button.addEventListener('shown.bs.tab', updateTabActions);
-    });
-
-    updateTabActions();
 </script>
 @endsection

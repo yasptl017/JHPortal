@@ -4,6 +4,49 @@
 @section('breadcrumb', 'Events')
 
 @section('content')
+<style>
+    .event-action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .event-icon-btn {
+        align-items: center;
+        border: none;
+        border-radius: 8px;
+        color: #ffffff;
+        display: inline-flex;
+        height: 34px;
+        justify-content: center;
+        padding: 0;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        width: 34px;
+    }
+
+    .event-icon-btn:hover {
+        color: #ffffff;
+        transform: translateY(-1px);
+    }
+
+    .event-icon-btn.edit {
+        background: #f59e0b;
+    }
+
+    .event-icon-btn.edit:hover {
+        background: #d97706;
+    }
+
+    .event-icon-btn.delete {
+        background: #ef4444;
+    }
+
+    .event-icon-btn.delete:hover {
+        background: #dc2626;
+    }
+</style>
+
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
     <div>
         <div class="page-title">
@@ -91,15 +134,15 @@
                                 </span>
                             </td>
                             <td>
-                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                    <a href="{{ route('admin.events.edit', $event) }}" class="btn btn-secondary btn-sm">
-                                        <i class="fas fa-edit"></i> Edit
+                                <div class="event-action-buttons">
+                                    <a href="{{ route('admin.events.edit', $event) }}" class="event-icon-btn edit" title="Edit event" aria-label="Edit event">
+                                        <i class="fas fa-pen"></i>
                                     </a>
                                     <form method="POST" action="{{ route('admin.events.destroy', $event) }}" onsubmit="return confirm('Delete this event? This cannot be undone.');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm">
-                                            <i class="fas fa-trash"></i> Delete
+                                        <button type="submit" class="event-icon-btn delete" title="Delete event" aria-label="Delete event">
+                                            <i class="fas fa-trash-can"></i>
                                         </button>
                                     </form>
                                 </div>

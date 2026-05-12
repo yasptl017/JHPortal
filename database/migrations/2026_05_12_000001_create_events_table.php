@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('audience')->nullable();
             $table->string('visibility')->default('public');
-            $table->dateTime('start_date');
+            $table->dateTime('start_date')->nullable();
             $table->dateTime('end_date')->nullable();
             $table->string('location')->nullable();
             $table->string('meeting_link')->nullable();

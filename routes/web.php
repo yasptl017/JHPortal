@@ -32,6 +32,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/events/{event}/edit', [EventsController::class, 'edit'])->name('events.edit');
         Route::put('/events/{event}', [EventsController::class, 'update'])->name('events.update');
         Route::delete('/events/{event}', [EventsController::class, 'destroy'])->name('events.destroy');
+        Route::get('/events/calendar/data', [EventsController::class, 'calendarEvents'])->name('events.calendar');
 
         // Registrations
         Route::get('/registrations', [DashboardController::class, 'registrations'])->name('registrations');
