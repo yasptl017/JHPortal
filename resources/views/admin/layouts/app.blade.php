@@ -46,6 +46,7 @@
             overflow-y: auto;
             z-index: 1000;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
         }
 
         .sidebar::-webkit-scrollbar {
@@ -153,6 +154,7 @@
             padding: 0 30px;
             z-index: 999;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: left 0.3s ease;
         }
 
         .header-left {
@@ -251,6 +253,19 @@
             margin-top: var(--header-height);
             padding: 30px;
             min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        body.sidebar-collapsed .sidebar {
+            transform: translateX(-100%);
+        }
+
+        body.sidebar-collapsed .header {
+            left: 0;
+        }
+
+        body.sidebar-collapsed .main-content {
+            margin-left: 0;
         }
 
         .page-title {
@@ -474,12 +489,29 @@
 
         /* Toggle Sidebar */
         .toggle-sidebar {
-            display: none;
-            background: none;
-            border: none;
-            color: #64748b;
-            font-size: 20px;
+            align-items: center;
+            background: var(--light-bg);
+            border: 1px solid var(--light-border);
+            border-radius: 8px;
+            color: #475569;
             cursor: pointer;
+            display: inline-flex;
+            font-size: 18px;
+            height: 40px;
+            justify-content: center;
+            transition: all 0.2s ease;
+            width: 40px;
+        }
+
+        .toggle-sidebar:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        body.sidebar-collapsed .toggle-sidebar {
+            background: #dbeafe;
+            border-color: #bfdbfe;
+            color: var(--primary-color);
         }
 
         /* Responsive */
@@ -498,6 +530,10 @@
                 transform: translateX(0);
             }
 
+            body.sidebar-collapsed .sidebar {
+                transform: translateX(-100%);
+            }
+
             .header {
                 left: 0;
             }
@@ -505,11 +541,6 @@
             .main-content {
                 margin-left: 0;
             }
-
-            .toggle-sidebar {
-                display: block;
-            }
-
             .page-title {
                 font-size: 22px;
             }
@@ -661,8 +692,8 @@
     <!-- Header -->
     <div class="header">
         <div class="header-left">
-            <button class="toggle-sidebar" id="toggleSidebar">
-                <i class="fas fa-bars"></i>
+            <button class="toggle-sidebar" id="toggleSidebar" type="button" title="Toggle sidebar" aria-label="Toggle sidebar" aria-expanded="true">
+                <i class="fas fa-bars" id="toggleSidebarIcon"></i>
             </button>
             <div class="breadcrumb-nav">
                 <a href="{{ route('admin.dashboard') }}">Dashboard</a>
@@ -735,18 +766,69 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
 
     <script>
-        // Toggle Sidebar on Mobile
-        document.getElementById('toggleSidebar')?.addEventListener('click', function() {
-            document.querySelector('.sidebar').classList.toggle('show');
+        const sidebar = document.querySelector('.sidebar');
+        const toggleSidebar = document.getElementById('toggleSidebar');
+        const toggleSidebarIcon = document.getElementById('toggleSidebarIcon');
+        const sidebarStorageKey = 'jh-admin-sidebar-collapsed';
+
+        function isMobileLayout() {
+            return window.innerWidth <= 768;
+        }
+
+        function refreshSidebarToggleState() {
+            const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+            const isOpen = isMobileLayout() ? sidebar?.classList.contains('show') : !isCollapsed;
+
+            toggleSidebar?.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
+            if (toggleSidebarIcon) {
+                toggleSidebarIcon.className = isOpen ? 'fas fa-bars' : 'fas fa-outdent';
+            }
+        }
+
+        if (localStorage.getItem(sidebarStorageKey) === '1' && !isMobileLayout()) {
+            document.body.classList.add('sidebar-collapsed');
+        }
+
+        refreshSidebarToggleState();
+
+        toggleSidebar?.addEventListener('click', function() {
+            if (isMobileLayout()) {
+                sidebar?.classList.toggle('show');
+            } else {
+                document.body.classList.toggle('sidebar-collapsed');
+                localStorage.setItem(
+                    sidebarStorageKey,
+                    document.body.classList.contains('sidebar-collapsed') ? '1' : '0'
+                );
+            }
+
+            refreshSidebarToggleState();
+
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+            }, 320);
         });
 
         // Close sidebar when clicking on a link (mobile)
         document.querySelectorAll('.nav-menu a').forEach(link => {
             link.addEventListener('click', function() {
                 if (window.innerWidth <= 768) {
-                    document.querySelector('.sidebar').classList.remove('show');
+                    sidebar?.classList.remove('show');
+                    refreshSidebarToggleState();
                 }
             });
+        });
+
+        window.addEventListener('resize', function() {
+            if (isMobileLayout()) {
+                document.body.classList.remove('sidebar-collapsed');
+            } else {
+                sidebar?.classList.remove('show');
+                document.body.classList.toggle('sidebar-collapsed', localStorage.getItem(sidebarStorageKey) === '1');
+            }
+
+            refreshSidebarToggleState();
         });
     </script>
 
