@@ -167,7 +167,7 @@ class EmailNotificationService
      */
     private function buildEventReminderBody(User $user, Event $event): string
     {
-        $daysUntil = now()->diffInDays($event->event_date);
+        $daysUntil = now()->diffInDays($event->start_date);
         return <<<HTML
         <h2>Event Reminder</h2>
         <p>Dear {$user->name},</p>
@@ -210,10 +210,64 @@ class EmailNotificationService
         <p>Great news! A spot has become available for <strong>{$event->title}</strong>.</p>
         <p><strong>Event Details:</strong></p>
         <ul>
-            <li>Date & Time: {$event->event_date->format('M d, Y H:i')}</li>
+            <li>Date & Time: {$event->start_date?->format('M d, Y H:i')}</li>
             <li>Location: {$event->location}</li>
         </ul>
         <p><a href="{$registerUrl}" style="background-color: #10b981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Register Now</a></p>
+        <p>Best regards,<br>Jewish House Team</p>
+        HTML;
+    }
+
+    /**
+     * Send waitlist reminder email
+     */
+    public function sendWaitlistReminder(User $user, Event $event, string $timeframe): bool
+    {
+        try {
+            $subject = "Reminder: Confirm Your Spot - {$event->title}";
+            $body = $this->buildWaitlistReminderBody($user, $event, $timeframe);
+
+            $emailLog = EmailLog::create([
+                'user_id' => $user->id,
+                'event_id' => $event->id,
+                'recipient_email' => $user->email,
+                'subject' => $subject,
+                'type' => 'waitlist_reminder',
+                'status' => 'pending',
+                'body' => $body,
+            ]);
+
+            Mail::raw($body, function ($message) use ($user, $subject) {
+                $message->to($user->email)
+                    ->subject($subject)
+                    ->from(config('mail.from.address'), config('mail.from.name'));
+            });
+
+            $emailLog->markAsSent();
+            return true;
+        } catch (\Exception $e) {
+            $emailLog->markAsFailed($e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Build waitlist reminder email body
+     */
+    private function buildWaitlistReminderBody(User $user, Event $event, string $timeframe): string
+    {
+        $confirmUrl = route('waitlist.confirm', $event);
+        return <<<HTML
+        <h2>Reminder: Confirm Your Spot</h2>
+        <p>Dear {$user->name},</p>
+        <p>This is a reminder that you have a spot available for <strong>{$event->title}</strong>.</p>
+        <p>You have {$timeframe} remaining to confirm your spot before it expires.</p>
+        <p><strong>Event Details:</strong></p>
+        <ul>
+            <li>Date & Time: {$event->start_date->format('M d, Y H:i')}</li>
+            <li>Location: {$event->location}</li>
+        </ul>
+        <p><a href="{$confirmUrl}" style="background-color: #10b981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Confirm Your Spot</a></p>
         <p>Best regards,<br>Jewish House Team</p>
         HTML;
     }

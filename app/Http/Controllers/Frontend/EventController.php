@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventRegistration;
+use App\Services\WaitlistService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -88,7 +89,7 @@ class EventController extends Controller
         return back()->with('success', $message);
     }
 
-    public function cancelRegistration(Event $event)
+    public function cancelRegistration(Event $event, WaitlistService $waitlistService)
     {
         $registration = EventRegistration::where('user_id', Auth::id())
             ->where('event_id', $event->id)
@@ -96,6 +97,11 @@ class EventController extends Controller
 
         if ($registration) {
             $registration->update(['status' => 'cancelled']);
+            
+            // Promote next waitlist member if event has waitlist enabled
+            if ($event->waitlist_enabled) {
+                $waitlistService->promoteNextWaitlistMember($event);
+            }
         }
 
         return back()->with('success', 'Your registration has been cancelled.');

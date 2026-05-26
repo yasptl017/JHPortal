@@ -59,6 +59,16 @@ class Event extends Model
         return $this->belongsToMany(User::class, 'event_registrations')->withPivot('status')->withTimestamps();
     }
 
+    public function waitlist()
+    {
+        return $this->hasMany(Waitlist::class);
+    }
+
+    public function waitlistUsers()
+    {
+        return $this->belongsToMany(User::class, 'waitlist')->withTimestamps();
+    }
+
     public function scopePublished($query)
     {
         return $query->where('status', 'published');

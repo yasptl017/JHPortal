@@ -10,11 +10,14 @@ use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
 use App\Http\Controllers\Admin\EmailLogController;
+use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\EventController;
 use App\Http\Controllers\Frontend\ContactController;
 use App\Http\Controllers\Frontend\AuthController as FrontendAuthController;
 use App\Http\Controllers\Frontend\FeedbackController;
+use App\Http\Controllers\Frontend\WaitlistController;
+use App\Http\Controllers\Admin\WaitlistController as AdminWaitlistController;
 
 // ============================================
 // PUBLIC FRONTEND ROUTES
@@ -50,6 +53,14 @@ Route::middleware('auth')->group(function () {
     // Event feedback (authenticated users)
     Route::get('/events/{event}/feedback', [FeedbackController::class, 'create'])->name('feedback.create');
     Route::post('/events/{event}/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
+
+    // Waitlist (authenticated users)
+    Route::post('/events/{event}/waitlist', [WaitlistController::class, 'join'])->name('waitlist.join');
+    Route::post('/events/{event}/waitlist/leave', [WaitlistController::class, 'leave'])->name('waitlist.leave');
+    Route::post('/events/{event}/waitlist/confirm', [WaitlistController::class, 'confirm'])->name('waitlist.confirm');
+    Route::get('/waitlist', [WaitlistController::class, 'index'])->name('waitlist.index');
+    Route::get('/events/{event}/waitlist/position', [WaitlistController::class, 'position'])->name('waitlist.position');
+    Route::get('/events/{event}/waitlist/details', [WaitlistController::class, 'details'])->name('waitlist.details');
 });
 
 // ============================================
@@ -107,14 +118,28 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/email-logs/{emailLog}/resend', [EmailLogController::class, 'resend'])->name('email-logs.resend');
         Route::delete('/email-logs/{emailLog}', [EmailLogController::class, 'destroy'])->name('email-logs.destroy');
 
+        // Waitlist Management
+        Route::get('/waitlist', [AdminWaitlistController::class, 'index'])->name('waitlist.index');
+        Route::post('/waitlist/{waitlist}/notify', [AdminWaitlistController::class, 'notify'])->name('waitlist.notify');
+        Route::post('/waitlist/{waitlist}/confirm', [AdminWaitlistController::class, 'confirm'])->name('waitlist.confirm');
+        Route::post('/waitlist/{waitlist}/cancel', [AdminWaitlistController::class, 'cancel'])->name('waitlist.cancel');
+        Route::delete('/waitlist/{waitlist}', [AdminWaitlistController::class, 'destroy'])->name('waitlist.destroy');
+        Route::post('/waitlist/bulk-notify', [AdminWaitlistController::class, 'bulkNotify'])->name('waitlist.bulkNotify');
+        Route::post('/waitlist/bulk-confirm', [AdminWaitlistController::class, 'bulkConfirm'])->name('waitlist.bulkConfirm');
+        Route::post('/waitlist/promote', [AdminWaitlistController::class, 'promote'])->name('waitlist.promote');
+        Route::get('/waitlist/export', [AdminWaitlistController::class, 'export'])->name('waitlist.export');
+        Route::get('/waitlist/stats', [AdminWaitlistController::class, 'stats'])->name('waitlist.stats');
+
         // Registrations
         Route::get('/registrations', [DashboardController::class, 'registrations'])->name('registrations');
 
         // Users Management
         Route::get('/users', [DashboardController::class, 'users'])->name('users');
 
-        // Analytics
-        Route::get('/analytics', [DashboardController::class, 'analytics'])->name('analytics');
+        // Analytics & Reporting Dashboard (FR-09)
+        Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
+        Route::get('/analytics/chart-data', [AnalyticsController::class, 'chartData'])->name('analytics.chartData');
+        Route::get('/analytics/export', [AnalyticsController::class, 'export'])->name('analytics.export');
 
         // Settings
         Route::get('/settings', [SiteSettingController::class, 'index'])->name('settings');

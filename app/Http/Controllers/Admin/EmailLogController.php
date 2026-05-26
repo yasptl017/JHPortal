@@ -8,12 +8,6 @@ use Illuminate\Http\Request;
 
 class EmailLogController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->middleware('is_admin');
-    }
-
     public function index(Request $request)
     {
         $query = EmailLog::with('user', 'event')->orderBy('created_at', 'desc');

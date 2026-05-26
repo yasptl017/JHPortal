@@ -659,6 +659,36 @@
                 </a>
             </li>
 
+            <li>
+                <a href="{{ route('admin.attendance.index') }}" class="@if(request()->routeIs('admin.attendance*')) active @endif">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span>Attendance</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('admin.waitlist.index') }}" class="@if(request()->routeIs('admin.waitlist*')) active @endif">
+                    <i class="fas fa-list-ol"></i>
+                    <span>Waitlist</span>
+                </a>
+            </li>
+
+            <div class="nav-section-title">Communication</div>
+
+            <li>
+                <a href="{{ route('admin.feedback.index') }}" class="@if(request()->routeIs('admin.feedback*')) active @endif">
+                    <i class="fas fa-star"></i>
+                    <span>Feedback</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('admin.email-logs.index') }}" class="@if(request()->routeIs('admin.email-logs*')) active @endif">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Email Logs</span>
+                </a>
+            </li>
+
             <div class="nav-section-title">Website</div>
 
             <li>

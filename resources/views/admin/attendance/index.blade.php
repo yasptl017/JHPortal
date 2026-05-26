@@ -19,7 +19,7 @@
                         <option value="">-- Choose an event --</option>
                         @foreach($events as $event)
                             <option value="{{ $event->id }}" @if($selectedEvent?->id == $event->id) selected @endif>
-                                {{ $event->title }} ({{ $event->event_date->format('M d, Y') }})
+                                {{ $event->title }} ({{ $event->start_date?->format('M d, Y') ?? 'TBA' }})
                             </option>
                         @endforeach
                     </select>

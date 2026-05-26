@@ -9,12 +9,6 @@ use Illuminate\Http\Request;
 
 class FeedbackController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->middleware('is_admin');
-    }
-
     public function index(Request $request)
     {
         $events = Event::where('status', 'published')->get();
