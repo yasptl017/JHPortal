@@ -1,75 +1,58 @@
 @extends('admin.layouts.app')
-
-@section('title', 'Users Management')
+@section('title', 'Users')
 @section('breadcrumb', 'Users')
 
 @section('content')
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-    <div>
-        <div class="page-title">
-            <i class="fas fa-users" style="margin-right: 10px; color: var(--primary-color);"></i>
-            Users Management
-        </div>
-        <p class="page-subtitle">Manage portal users and permissions</p>
-    </div>
-    <a href="#" class="btn btn-primary">
-        <i class="fas fa-plus-circle"></i> Add User
-    </a>
+<div class="mb-4">
+    <h1 class="page-title">User Management</h1>
+    <p class="page-subtitle">View registered community members</p>
 </div>
 
-<!-- Filters -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <input type="text" class="form-control" placeholder="Search users...">
-    </div>
-    <div class="col-md-3">
-        <select class="form-control">
-            <option value="">All Roles</option>
-            <option value="admin">Admin</option>
-            <option value="user">User</option>
-            <option value="moderator">Moderator</option>
-        </select>
-    </div>
-    <div class="col-md-3">
-        <select class="form-control">
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-        </select>
-    </div>
-    <div class="col-md-3">
-        <button class="btn btn-secondary w-100">
-            <i class="fas fa-filter"></i> Filter
-        </button>
-    </div>
-</div>
-
-<!-- Users Table -->
 <div class="card">
     <div class="card-body">
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Joined Date</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 40px;">
-                            <i class="fas fa-inbox" style="font-size: 40px; color: #cbd5e1; margin-bottom: 15px; display: block;"></i>
-                            <p style="color: #94a3b8; margin: 0;">No users created yet</p>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        @if($users->isEmpty())
+            <div class="text-center py-5">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No registered users yet</h5>
+                <p class="text-muted">Users will appear here when they create accounts.</p>
+            </div>
+        @else
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Phone</th>
+                            <th>Registrations</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($users as $user)
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.85rem;">
+                                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                                        </div>
+                                        <div>
+                                            <div style="font-weight:600;">{{ $user->name }}</div>
+                                            <div style="font-size:0.8rem;color:#64748b;">{{ $user->email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color:#64748b;">{{ $user->phone ?? '-' }}</td>
+                                <td><span class="badge bg-primary">{{ $user->event_registrations_count }}</span></td>
+                                <td style="font-size:0.85rem;color:#64748b;">{{ $user->created_at->format('M d, Y') }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-center mt-3">
+                {{ $users->links() }}
+            </div>
+        @endif
     </div>
 </div>
-
 @endsection

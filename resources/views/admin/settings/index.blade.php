@@ -1,148 +1,88 @@
 @extends('admin.layouts.app')
-
-@section('title', 'Settings')
+@section('title', 'Site Settings')
 @section('breadcrumb', 'Settings')
 
 @section('content')
-<div class="page-title">
-    <i class="fas fa-cog" style="margin-right: 10px; color: var(--primary-color);"></i>
-    Settings
-</div>
-<p class="page-subtitle">Configure your portal settings</p>
-
-<div class="row">
-    <div class="col-lg-3">
-        <!-- Settings Menu -->
-        <div class="card">
-            <div class="card-body" style="padding: 0;">
-                <div style="display: flex; flex-direction: column;">
-                    <a href="#general" style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; color: var(--primary-color); text-decoration: none; font-weight: 600;">
-                        <i class="fas fa-sliders-h"></i> General Settings
-                    </a>
-                    <a href="#email" style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; color: #64748b; text-decoration: none;">
-                        <i class="fas fa-envelope"></i> Email Settings
-                    </a>
-                    <a href="#security" style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; color: #64748b; text-decoration: none;">
-                        <i class="fas fa-shield-alt"></i> Security
-                    </a>
-                    <a href="#backup" style="padding: 15px 20px; color: #64748b; text-decoration: none;">
-                        <i class="fas fa-database"></i> Backup
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-9">
-        <!-- General Settings -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 style="margin: 0;">General Settings</h5>
-            </div>
-            <div class="card-body">
-                <form>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Portal Name</label>
-                            <input type="text" class="form-control" value="Jewish House Portal">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Portal Email</label>
-                            <input type="email" class="form-control" value="portal@jewishhouse.com">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Portal Description</label>
-                        <textarea class="form-control" rows="3" placeholder="Enter portal description"></textarea>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Timezone</label>
-                            <select class="form-control">
-                                <option value="">Select Timezone</option>
-                                <option value="UTC">UTC</option>
-                                <option value="EST">EST</option>
-                                <option value="PST">PST</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Language</label>
-                            <select class="form-control">
-                                <option value="en">English</option>
-                                <option value="es">Spanish</option>
-                                <option value="fr">French</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save Changes
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Email Settings -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 style="margin: 0;">Email Settings</h5>
-            </div>
-            <div class="card-body">
-                <form>
-                    <div class="mb-3">
-                        <label class="form-label">SMTP Server</label>
-                        <input type="text" class="form-control" placeholder="smtp.gmail.com">
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">SMTP Port</label>
-                            <input type="text" class="form-control" placeholder="587">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Encryption</label>
-                            <select class="form-control">
-                                <option value="tls">TLS</option>
-                                <option value="ssl">SSL</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Email Address</label>
-                            <input type="email" class="form-control" placeholder="admin@jewishhouse.com">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Password</label>
-                            <input type="password" class="form-control" placeholder="••••••••">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save Changes
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Security Settings -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 style="margin: 0;">Security Settings</h5>
-            </div>
-            <div class="card-body">
-                <div style="margin-bottom: 20px;">
-                    <label class="form-label">Change Password</label>
-                    <div class="row">
-                        <div class="col-md-6 mb-2">
-                            <input type="password" class="form-control" placeholder="Current Password">
-                        </div>
-                        <div class="col-md-6 mb-2">
-                            <input type="password" class="form-control" placeholder="New Password">
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-primary">Update Password</button>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="mb-4">
+    <h1 class="page-title">Site Settings</h1>
+    <p class="page-subtitle">Configure website settings and contact information</p>
 </div>
 
+<div class="card" style="max-width:800px;">
+    <div class="card-body" style="padding:28px;">
+        <form method="POST" action="{{ route('admin.settings.update') }}">
+            @csrf
+            @method('PUT')
+
+            @if($errors->any())
+                <div class="alert-box alert-danger fade-in mb-3">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div>
+                        @foreach($errors->all() as $error)
+                            <div>{{ $error }}</div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <h5 style="font-weight:700;color:#1e293b;margin-bottom:16px;"><i class="fas fa-globe me-2" style="color:#2563eb;"></i>General</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Site Name</label>
+                    <input type="text" name="site_name" class="form-control" value="{{ old('site_name', $settings['site_name']) }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Site Description</label>
+                    <input type="text" name="site_description" class="form-control" value="{{ old('site_description', $settings['site_description']) }}">
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <h5 style="font-weight:700;color:#1e293b;margin-bottom:16px;"><i class="fas fa-address-card me-2" style="color:#10b981;"></i>Contact Information</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Contact Email</label>
+                    <input type="email" name="contact_email" class="form-control" value="{{ old('contact_email', $settings['contact_email']) }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Contact Phone</label>
+                    <input type="text" name="contact_phone" class="form-control" value="{{ old('contact_phone', $settings['contact_phone']) }}">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Address</label>
+                    <input type="text" name="contact_address" class="form-control" value="{{ old('contact_address', $settings['contact_address']) }}">
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <h5 style="font-weight:700;color:#1e293b;margin-bottom:16px;"><i class="fas fa-share-alt me-2" style="color:#7c3aed;"></i>Social Media</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Facebook URL</label>
+                    <input type="url" name="facebook_url" class="form-control" value="{{ old('facebook_url', $settings['facebook_url']) }}" placeholder="https://facebook.com/...">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Twitter URL</label>
+                    <input type="url" name="twitter_url" class="form-control" value="{{ old('twitter_url', $settings['twitter_url']) }}" placeholder="https://twitter.com/...">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Instagram URL</label>
+                    <input type="url" name="instagram_url" class="form-control" value="{{ old('instagram_url', $settings['instagram_url']) }}" placeholder="https://instagram.com/...">
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <h5 style="font-weight:700;color:#1e293b;margin-bottom:16px;"><i class="fas fa-paragraph me-2" style="color:#ea580c;"></i>Footer</h5>
+            <div class="mb-4">
+                <label class="form-label">Footer Text</label>
+                <textarea name="footer_text" class="form-control" rows="3">{{ old('footer_text', $settings['footer_text']) }}</textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save Settings</button>
+        </form>
+    </div>
+</div>
 @endsection

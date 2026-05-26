@@ -1,67 +1,64 @@
 @extends('admin.layouts.app')
-
 @section('title', 'Registrations')
 @section('breadcrumb', 'Registrations')
 
 @section('content')
-<div class="page-title">
-    <i class="fas fa-user-check" style="margin-right: 10px; color: var(--primary-color);"></i>
-    Registrations
-</div>
-<p class="page-subtitle">View and manage all event registrations</p>
-
-<!-- Filters -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <input type="text" class="form-control" placeholder="Search registrations...">
-    </div>
-    <div class="col-md-3">
-        <select class="form-control">
-            <option value="">All Events</option>
-            <option value="event1">Event 1</option>
-        </select>
-    </div>
-    <div class="col-md-3">
-        <select class="form-control">
-            <option value="">All Status</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="pending">Pending</option>
-            <option value="cancelled">Cancelled</option>
-        </select>
-    </div>
-    <div class="col-md-3">
-        <button class="btn btn-secondary w-100">
-            <i class="fas fa-filter"></i> Filter
-        </button>
-    </div>
+<div class="mb-4">
+    <h1 class="page-title">Event Registrations</h1>
+    <p class="page-subtitle">View and manage event registrations from community members</p>
 </div>
 
-<!-- Registrations Table -->
 <div class="card">
     <div class="card-body">
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Event</th>
-                        <th>Registration Date</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 40px;">
-                            <i class="fas fa-inbox" style="font-size: 40px; color: #cbd5e1; margin-bottom: 15px; display: block;"></i>
-                            <p style="color: #94a3b8; margin: 0;">No registrations yet</p>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        @if($registrations->isEmpty())
+            <div class="text-center py-5">
+                <i class="fas fa-user-check fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No registrations yet</h5>
+                <p class="text-muted">Registrations will appear here when users sign up for events.</p>
+            </div>
+        @else
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Event</th>
+                            <th>Status</th>
+                            <th>Registered At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($registrations as $reg)
+                            <tr>
+                                <td>
+                                    <div style="font-weight:600;">{{ $reg->user->name ?? 'Deleted User' }}</div>
+                                    <div style="font-size:0.8rem;color:#64748b;">{{ $reg->user->email ?? '' }}</div>
+                                </td>
+                                <td>
+                                    <div style="font-weight:600;">{{ $reg->event->title ?? 'Deleted Event' }}</div>
+                                    @if($reg->event?->start_date)
+                                        <div style="font-size:0.8rem;color:#64748b;">{{ $reg->event->start_date->format('M d, Y') }}</div>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="badge {{ match($reg->status) {
+                                        'registered' => 'badge-success',
+                                        'waitlisted' => 'badge-warning',
+                                        'attended' => 'badge-info',
+                                        'cancelled' => 'badge-danger',
+                                        default => 'bg-secondary'
+                                    } }}">{{ ucfirst($reg->status) }}</span>
+                                </td>
+                                <td style="font-size:0.85rem;color:#64748b;">{{ $reg->created_at->format('M d, Y g:i A') }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-center mt-3">
+                {{ $registrations->links() }}
+            </div>
+        @endif
     </div>
 </div>
-
 @endsection

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'is_admin'])]
+#[Fillable(['name', 'email', 'password', 'is_admin', 'phone', 'profile_image'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -29,5 +29,15 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_admin' => 'boolean',
         ];
+    }
+
+    public function eventRegistrations()
+    {
+        return $this->hasMany(\App\Models\EventRegistration::class);
+    }
+
+    public function registeredEvents()
+    {
+        return $this->belongsToMany(\App\Models\Event::class, 'event_registrations')->withPivot('status')->withTimestamps();
     }
 }

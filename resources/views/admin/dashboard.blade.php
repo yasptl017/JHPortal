@@ -427,18 +427,18 @@
             <div class="stat-icon">
                 <i class="fas fa-users"></i>
             </div>
-            <div class="stat-label">Total Attendees</div>
-            <div class="stat-value">{{ $stats['total_attendees'] ?? 0 }}</div>
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value">{{ $stats['total_users'] ?? 0 }}</div>
         </div>
     </div>
 
     <div class="col-lg-3 col-md-6">
         <div class="stat-card red">
             <div class="stat-icon">
-                <i class="fas fa-clock"></i>
+                <i class="fas fa-envelope"></i>
             </div>
-            <div class="stat-label">Pending Approvals</div>
-            <div class="stat-value">{{ $stats['pending_approvals'] ?? 0 }}</div>
+            <div class="stat-label">Unread Messages</div>
+            <div class="stat-value">{{ $stats['unread_messages'] ?? 0 }}</div>
         </div>
     </div>
 </div>

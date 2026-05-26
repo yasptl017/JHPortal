@@ -4,20 +4,20 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\EventRegistration;
+use App\Models\User;
+use App\Models\ContactMessage;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    /**
-     * Show the admin dashboard.
-     */
     public function index()
     {
         $stats = [
             'total_events' => Event::count(),
-            'total_registrations' => 0,
-            'total_attendees' => 0,
-            'pending_approvals' => 0,
+            'total_registrations' => EventRegistration::count(),
+            'total_users' => User::where('is_admin', false)->count(),
+            'unread_messages' => ContactMessage::unread()->count(),
         ];
 
         $upcomingEvents = Event::query()
@@ -29,43 +29,27 @@ class DashboardController extends Controller
         return view('admin.dashboard', compact('stats', 'upcomingEvents'));
     }
 
-    /**
-     * Show events management page.
-     */
-    public function events()
-    {
-        return view('admin.events.index');
-    }
-
-    /**
-     * Show registrations page.
-     */
     public function registrations()
     {
-        return view('admin.registrations.index');
+        $registrations = EventRegistration::with(['user', 'event'])
+            ->latest()
+            ->paginate(15);
+
+        return view('admin.registrations.index', compact('registrations'));
     }
 
-    /**
-     * Show analytics page.
-     */
     public function analytics()
     {
         return view('admin.analytics.index');
     }
 
-    /**
-     * Show user management page.
-     */
     public function users()
     {
-        return view('admin.users.index');
-    }
+        $users = User::where('is_admin', false)
+            ->withCount('eventRegistrations')
+            ->latest()
+            ->paginate(15);
 
-    /**
-     * Show settings page.
-     */
-    public function settings()
-    {
-        return view('admin.settings.index');
+        return view('admin.users.index', compact('users'));
     }
 }

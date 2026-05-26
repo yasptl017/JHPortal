@@ -659,6 +659,22 @@
                 </a>
             </li>
 
+            <div class="nav-section-title">Website</div>
+
+            <li>
+                <a href="{{ route('admin.sliders.index') }}" class="@if(request()->routeIs('admin.sliders*')) active @endif">
+                    <i class="fas fa-images"></i>
+                    <span>Sliders</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('admin.messages.index') }}" class="@if(request()->routeIs('admin.messages*')) active @endif">
+                    <i class="fas fa-envelope"></i>
+                    <span>Messages</span>
+                </a>
+            </li>
+
             <div class="nav-section-title">Analytics</div>
 
             <li>
@@ -671,9 +687,16 @@
             <div class="nav-section-title">Settings</div>
 
             <li>
-                <a href="{{ route('admin.settings') }}" class="@if(Route::currentRouteName() == 'admin.settings') active @endif">
+                <a href="{{ route('admin.settings') }}" class="@if(request()->routeIs('admin.settings*')) active @endif">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('home') }}" target="_blank">
+                    <i class="fas fa-external-link-alt"></i>
+                    <span>View Website</span>
                 </a>
             </li>
 

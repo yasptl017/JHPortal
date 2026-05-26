@@ -48,4 +48,36 @@ class Event extends Model
             'registration_limit' => 'integer',
         ];
     }
+
+    public function registrations()
+    {
+        return $this->hasMany(EventRegistration::class);
+    }
+
+    public function registeredUsers()
+    {
+        return $this->belongsToMany(User::class, 'event_registrations')->withPivot('status')->withTimestamps();
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'published');
+    }
+
+    public function scopeUpcoming($query)
+    {
+        return $query->where('start_date', '>=', now());
+    }
+
+    public function isFull(): bool
+    {
+        if (!$this->capacity) return false;
+        return $this->registrations()->where('status', 'registered')->count() >= $this->capacity;
+    }
+
+    public function spotsLeft(): ?int
+    {
+        if (!$this->capacity) return null;
+        return max(0, $this->capacity - $this->registrations()->where('status', 'registered')->count());
+    }
 }
