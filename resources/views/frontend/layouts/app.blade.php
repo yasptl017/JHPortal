@@ -34,67 +34,182 @@
         /* Navbar */
         .navbar-main {
             background: #ffffff;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            padding: 0;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+            padding: 12px 0;
             position: sticky;
             top: 0;
             z-index: 1050;
             border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
         }
 
         .navbar-main .container { padding: 0 24px; }
 
         .navbar-brand {
             font-weight: 800;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             color: var(--primary) !important;
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 16px 0;
+            padding: 8px 0;
+            transition: all 0.3s ease;
         }
 
-        .navbar-brand i { font-size: 1.6rem; }
+        .navbar-brand:hover {
+            transform: scale(1.02);
+        }
+
+        .navbar-brand i {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
         .navbar-main .nav-link {
             color: var(--dark) !important;
             font-weight: 500;
-            padding: 20px 16px !important;
+            padding: 12px 18px !important;
             font-size: 0.95rem;
-            transition: color 0.2s;
+            transition: all 0.3s ease;
             position: relative;
+            border-radius: 6px;
+            margin: 0 4px;
         }
 
-        .navbar-main .nav-link:hover,
+        .navbar-main .nav-link:hover {
+            color: var(--primary) !important;
+            background: rgba(37, 99, 235, 0.08);
+            transform: translateY(-2px);
+        }
+
         .navbar-main .nav-link.active {
             color: var(--primary) !important;
+            background: rgba(37, 99, 235, 0.12);
         }
 
         .navbar-main .nav-link.active::after {
             content: '';
             position: absolute;
-            bottom: 0;
-            left: 16px;
-            right: 16px;
+            bottom: 8px;
+            left: 18px;
+            right: 18px;
             height: 3px;
-            background: var(--primary);
-            border-radius: 3px 3px 0 0;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 3px;
         }
 
-        .btn-nav {
-            background: var(--primary);
+        .btn-nav-login {
+            color: var(--primary) !important;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 10px 20px !important;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-nav-login:hover {
+            color: var(--primary-dark) !important;
+            background: rgba(37, 99, 235, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .btn-nav-register {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: #fff !important;
             border-radius: 8px;
-            padding: 8px 20px !important;
+            padding: 10px 24px !important;
             font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
         }
 
-        .btn-nav:hover {
-            background: var(--primary-dark);
+        .btn-nav-register:hover {
+            background: linear-gradient(135deg, var(--primary-dark), #6d28d9);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+            color: #fff !important;
+        }
+
+        .btn-nav-register:active {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+        }
+
+        .navbar-auth-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: 20px;
+        }
+
+        .navbar-user-dropdown {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .navbar-user-dropdown:hover {
+            background: rgba(37, 99, 235, 0.08);
+        }
+
+        .navbar-user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+        }
+
+        .navbar-user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--dark);
+        }
+
+        .dropdown-menu {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            padding: 8px 0;
+        }
+
+        .dropdown-item {
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            color: var(--dark);
+        }
+
+        .dropdown-item:hover {
+            background: rgba(37, 99, 235, 0.08);
+            color: var(--primary);
+        }
+
+        .dropdown-item i {
+            width: 18px;
+            color: var(--primary);
         }
 
         /* Hero / Slider */
@@ -513,32 +628,38 @@
                         <a class="nav-link @if(Route::currentRouteName() == 'contact') active @endif" href="{{ route('contact') }}">Contact</a>
                     </li>
                 </ul>
-                <div class="d-flex align-items-center gap-2">
+                <div class="navbar-auth-section">
                     @auth
                         <div class="dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
-                                <div style="width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">
+                            <a class="navbar-user-dropdown dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="navbar-user-avatar">
                                     {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                                 </div>
-                                <span style="font-weight:600;font-size:0.9rem;">{{ Auth::user()->name }}</span>
+                                <span class="navbar-user-name d-none d-md-inline">{{ Auth::user()->name }}</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="fas fa-user me-2"></i>My Profile</a></li>
+                                <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="fas fa-user"></i>My Profile</a></li>
                                 @if(Auth::user()->is_admin)
-                                    <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="fas fa-cog me-2"></i>Admin Panel</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="fas fa-cog"></i>Admin Panel</a></li>
                                 @endif
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
-                                        <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt me-2"></i>Logout</button>
+                                        <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt"></i>Logout</button>
                                     </form>
                                 </li>
                             </ul>
                         </div>
                     @else
-                        <a href="{{ route('login') }}" class="nav-link" style="font-weight:600;font-size:0.9rem;">Login</a>
-                        <a href="{{ route('register') }}" class="btn-nav nav-link">Register</a>
+                        <a href="{{ route('login') }}" class="btn-nav-login">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span>Login</span>
+                        </a>
+                        <a href="{{ route('register') }}" class="btn-nav-register">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Register</span>
+                        </a>
                     @endauth
                 </div>
             </div>

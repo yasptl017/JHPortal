@@ -7,10 +7,13 @@ use App\Http\Controllers\Admin\EventsController;
 use App\Http\Controllers\Admin\SliderController;
 use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\SiteSettingController;
+use App\Http\Controllers\Admin\AttendanceController;
+use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\EventController;
 use App\Http\Controllers\Frontend\ContactController;
 use App\Http\Controllers\Frontend\AuthController as FrontendAuthController;
+use App\Http\Controllers\Frontend\FeedbackController;
 
 // ============================================
 // PUBLIC FRONTEND ROUTES
@@ -42,6 +45,10 @@ Route::middleware('auth')->group(function () {
     // Event registration (authenticated users)
     Route::post('/events/{event}/register', [EventController::class, 'register'])->name('events.register');
     Route::post('/events/{event}/cancel', [EventController::class, 'cancelRegistration'])->name('events.cancel');
+
+    // Event feedback (authenticated users)
+    Route::get('/events/{event}/feedback', [FeedbackController::class, 'create'])->name('feedback.create');
+    Route::post('/events/{event}/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
 });
 
 // ============================================
@@ -82,6 +89,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/messages', [ContactMessageController::class, 'index'])->name('messages.index');
         Route::get('/messages/{message}', [ContactMessageController::class, 'show'])->name('messages.show');
         Route::delete('/messages/{message}', [ContactMessageController::class, 'destroy'])->name('messages.destroy');
+
+        // Attendance Tracking
+        Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+        Route::post('/events/{event}/attendance', [AttendanceController::class, 'markAttendance'])->name('attendance.mark');
+        Route::post('/events/{event}/attendance/bulk', [AttendanceController::class, 'bulkMarkAttendance'])->name('attendance.bulk');
+        Route::get('/events/{event}/attendance/report', [AttendanceController::class, 'report'])->name('attendance.report');
+
+        // Feedback Management
+        Route::get('/feedback', [AdminFeedbackController::class, 'index'])->name('feedback.index');
+        Route::get('/feedback/{feedback}', [AdminFeedbackController::class, 'show'])->name('feedback.show');
 
         // Registrations
         Route::get('/registrations', [DashboardController::class, 'registrations'])->name('registrations');
