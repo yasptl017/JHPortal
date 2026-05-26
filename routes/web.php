@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
+use App\Http\Controllers\Admin\EmailLogController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\EventController;
 use App\Http\Controllers\Frontend\ContactController;
@@ -99,6 +100,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Feedback Management
         Route::get('/feedback', [AdminFeedbackController::class, 'index'])->name('feedback.index');
         Route::get('/feedback/{feedback}', [AdminFeedbackController::class, 'show'])->name('feedback.show');
+
+        // Email Logs
+        Route::get('/email-logs', [EmailLogController::class, 'index'])->name('email-logs.index');
+        Route::get('/email-logs/{emailLog}', [EmailLogController::class, 'show'])->name('email-logs.show');
+        Route::post('/email-logs/{emailLog}/resend', [EmailLogController::class, 'resend'])->name('email-logs.resend');
+        Route::delete('/email-logs/{emailLog}', [EmailLogController::class, 'destroy'])->name('email-logs.destroy');
 
         // Registrations
         Route::get('/registrations', [DashboardController::class, 'registrations'])->name('registrations');
