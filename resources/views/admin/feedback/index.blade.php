@@ -8,6 +8,13 @@
         <div class="col-md-8">
             <h1 class="h3 mb-0"><i class="fas fa-star me-2"></i>Event Feedback</h1>
         </div>
+        <div class="col-md-4 text-end">
+            @if($selectedEvent)
+                <a href="{{ route('admin.feedback-form.create', $selectedEvent) }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-wpforms me-2"></i>Configure Feedback Form
+                </a>
+            @endif
+        </div>
     </div>
 
     <div class="card mb-4">
@@ -19,7 +26,7 @@
                         <option value="">-- Choose an event --</option>
                         @foreach($events as $event)
                             <option value="{{ $event->id }}" @if($selectedEvent?->id == $event->id) selected @endif>
-                                {{ $event->title }} ({{ $event->event_date->format('M d, Y') }})
+                                {{ $event->title }} ({{ $event->start_date?->format('M d, Y') ?? 'TBD' }})
                             </option>
                         @endforeach
                     </select>
@@ -104,7 +111,7 @@
                     </div>
                     <div class="card-body">
                         <p><strong>Event:</strong> {{ $selectedEvent->title }}</p>
-                        <p><strong>Date:</strong> {{ $selectedEvent->event_date->format('M d, Y H:i') }}</p>
+                        <p><strong>Date:</strong> {{ $selectedEvent->start_date?->format('M d, Y H:i') ?? 'TBD' }}</p>
                         <p><strong>Location:</strong> {{ $selectedEvent->location }}</p>
                         <p><strong>Category:</strong> <span class="badge bg-secondary">{{ $selectedEvent->category }}</span></p>
                         <p><strong>Total Registered:</strong> {{ $selectedEvent->registrations()->count() }}</p>

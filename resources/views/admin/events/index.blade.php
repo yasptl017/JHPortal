@@ -123,7 +123,7 @@
                             </td>
                             <td>{{ $event->location ?? 'TBA' }}</td>
                             <td>
-                                0{{ $event->capacity ? ' / ' . $event->capacity : '' }}
+                                {{ $event->registrations()->where('status', 'registered')->count() }}{{ $event->capacity ? ' / ' . $event->capacity : '' }}
                                 @if ($event->waitlist_enabled)
                                     <span class="badge badge-info" style="margin-left: 6px;">Waitlist</span>
                                 @endif

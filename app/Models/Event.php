@@ -79,15 +79,20 @@ class Event extends Model
         return $query->where('start_date', '>=', now());
     }
 
+    public function getRegisteredCount(): int
+    {
+        return $this->registrations()->where('status', 'registered')->count();
+    }
+
     public function isFull(): bool
     {
         if (!$this->capacity) return false;
-        return $this->registrations()->where('status', 'registered')->count() >= $this->capacity;
+        return $this->getRegisteredCount() >= $this->capacity;
     }
 
     public function spotsLeft(): ?int
     {
         if (!$this->capacity) return null;
-        return max(0, $this->capacity - $this->registrations()->where('status', 'registered')->count());
+        return max(0, $this->capacity - $this->getRegisteredCount());
     }
 }

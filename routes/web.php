@@ -9,7 +9,9 @@ use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
+use App\Http\Controllers\Admin\FeedbackFormController;
 use App\Http\Controllers\Admin\EmailLogController;
+use App\Http\Controllers\Admin\EmailSettingsController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\EventController;
@@ -111,6 +113,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Feedback Management
         Route::get('/feedback', [AdminFeedbackController::class, 'index'])->name('feedback.index');
         Route::get('/feedback/{feedback}', [AdminFeedbackController::class, 'show'])->name('feedback.show');
+        Route::get('/events/{event}/feedback-form', [FeedbackFormController::class, 'create'])->name('feedback-form.create');
+        Route::post('/events/{event}/feedback-form', [FeedbackFormController::class, 'store'])->name('feedback-form.store');
+        Route::get('/events/{event}/feedback-form/edit', [FeedbackFormController::class, 'edit'])->name('feedback-form.edit');
+        Route::put('/events/{event}/feedback-form', [FeedbackFormController::class, 'update'])->name('feedback-form.update');
 
         // Email Logs
         Route::get('/email-logs', [EmailLogController::class, 'index'])->name('email-logs.index');
@@ -144,5 +150,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Settings
         Route::get('/settings', [SiteSettingController::class, 'index'])->name('settings');
         Route::put('/settings', [SiteSettingController::class, 'update'])->name('settings.update');
+
+        // Email Settings
+        Route::get('/email-settings', [EmailSettingsController::class, 'index'])->name('email-settings.index');
+        Route::post('/email-settings', [EmailSettingsController::class, 'store'])->name('email-settings.store');
+        Route::post('/email-settings/test', [EmailSettingsController::class, 'testEmail'])->name('email-settings.test');
     });
 });

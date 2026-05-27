@@ -60,8 +60,13 @@ class EmailLogController extends Controller
             $emailLog->markAsSent();
             return back()->with('success', 'Email resent successfully.');
         } catch (\Exception $e) {
+            // Log the actual error for debugging
+            \Log::error('Email resend failed: ' . $e->getMessage(), ['exception' => $e]);
+            
             $emailLog->markAsFailed($e->getMessage());
-            return back()->with('error', 'Failed to resend email: ' . $e->getMessage());
+            
+            // Return generic error message to user
+            return back()->with('error', 'Unable to resend email. Please try again later.');
         }
     }
 

@@ -19,14 +19,22 @@
                         <div class="mb-4">
                             <h4 class="mb-2">{{ $event->title }}</h4>
                             <p class="text-muted mb-0">
-                                <i class="fas fa-calendar me-2"></i>{{ $event->event_date->format('M d, Y H:i') }}
+                                <i class="fas fa-calendar me-2"></i>{{ $event->start_date?->format('M d, Y H:i') ?? 'TBD' }}
                                 <i class="fas fa-map-marker-alt ms-3 me-2"></i>{{ $event->location }}
                             </p>
                         </div>
 
+                        @if($feedbackForm)
+                            <div class="alert alert-info mb-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                {{ $feedbackForm->description ?? 'Please share your feedback about this event.' }}
+                            </div>
+                        @endif
+
                         <form method="POST" action="{{ route('feedback.store', $event) }}">
                             @csrf
 
+                            @if($feedbackForm?->include_rating ?? true)
                             <div class="mb-4">
                                 <label class="form-label fw-bold">How would you rate this event?</label>
                                 <div class="rating-input">
@@ -41,7 +49,9 @@
                                     <div class="text-danger small mt-2">{{ $message }}</div>
                                 @enderror
                             </div>
+                            @endif
 
+                            @if($feedbackForm?->include_comments ?? true)
                             <div class="mb-4">
                                 <label class="form-label fw-bold">Additional Comments</label>
                                 <textarea name="comments" class="form-control @error('comments') is-invalid @enderror" rows="5" placeholder="Share your thoughts about the event..."></textarea>
@@ -49,7 +59,20 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                            @endif
 
+                            @if($feedbackForm?->include_attendance ?? true)
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input type="checkbox" id="attended" name="attended" value="1" class="form-check-input" checked>
+                                    <label class="form-check-label" for="attended">
+                                        I attended this event
+                                    </label>
+                                </div>
+                            </div>
+                            @endif
+
+                            @if($feedbackForm?->include_would_attend_again ?? true)
                             <div class="mb-4">
                                 <div class="form-check">
                                     <input type="checkbox" id="would_attend" name="would_attend_again" value="1" class="form-check-input" checked>
@@ -58,6 +81,7 @@
                                     </label>
                                 </div>
                             </div>
+                            @endif
 
                             <div class="d-grid gap-2">
                                 <button type="submit" class="btn btn-primary btn-lg">
