@@ -724,6 +724,13 @@
             </li>
 
             <li>
+                <a href="{{ route('admin.email-settings.index') }}" class="@if(request()->routeIs('admin.email-settings*')) active @endif">
+                    <i class="fas fa-envelope"></i>
+                    <span>Email Settings</span>
+                </a>
+            </li>
+
+            <li>
                 <a href="{{ route('home') }}" target="_blank">
                     <i class="fas fa-external-link-alt"></i>
                     <span>View Website</span>
