@@ -27,14 +27,11 @@ class SendEventReminders extends Command
         $sent = 0;
         $failed = 0;
 
-        // Find events starting in approximately 24 hours
-        $reminderTime = now()->addHours(24);
-        $events = Event::where('status', 'published')
-            ->whereBetween('start_date', [
-                $reminderTime->copy()->subMinutes(30),
-                $reminderTime->copy()->addMinutes(30)
-            ])
-            ->get();
+        $events = Event::where('status', 'published')->where('email_status', 'enabled')
+            ->whereNotNull('start_date')->get()->filter(function (Event $event) {
+                $hours = ['24h' => 24, '48h' => 48, '7d' => 168][$event->reminder_offset] ?? 24;
+                return $event->start_date->between(now()->addHours($hours)->subMinutes(15), now()->addHours($hours)->addMinutes(15));
+            });
 
         foreach ($events as $event) {
             // Get registered users
@@ -57,18 +54,30 @@ class SendEventReminders extends Command
                 }
 
                 try {
-                    $emailService->sendEventReminder($user, $event);
+                    // Check if email was actually sent before creating reminder
+                    $emailSent = $emailService->sendEventReminder($user, $event);
                     
-                    EmailReminder::create([
-                        'event_id' => $event->id,
-                        'user_id' => $user->id,
-                        'type' => 'event_reminder',
-                        'scheduled_at' => now(),
-                        'sent_at' => now(),
-                        'status' => 'sent',
-                    ]);
-
-                    $sent++;
+                    if ($emailSent) {
+                        EmailReminder::create([
+                            'event_id' => $event->id,
+                            'user_id' => $user->id,
+                            'type' => 'event_reminder',
+                            'scheduled_at' => now(),
+                            'sent_at' => now(),
+                            'status' => 'sent',
+                        ]);
+                        $sent++;
+                    } else {
+                        EmailReminder::create([
+                            'event_id' => $event->id,
+                            'user_id' => $user->id,
+                            'type' => 'event_reminder',
+                            'scheduled_at' => now(),
+                            'status' => 'failed',
+                            'error_message' => 'Email service returned false',
+                        ]);
+                        $failed++;
+                    }
                 } catch (\Exception $e) {
                     EmailReminder::create([
                         'event_id' => $event->id,

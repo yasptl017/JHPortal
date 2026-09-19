@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventRegistration;
 use App\Services\WaitlistService;
+use App\Services\EmailNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -55,7 +56,7 @@ class EventController extends Controller
         return view('frontend.events.show', compact('event', 'isRegistered', 'registration'));
     }
 
-    public function register(Event $event)
+    public function register(Event $event, EmailNotificationService $emailService, WaitlistService $waitlistService)
     {
         $user = Auth::user();
 
@@ -70,7 +71,13 @@ class EventController extends Controller
         $status = 'registered';
         if ($event->isFull()) {
             if ($event->waitlist_enabled) {
-                $status = 'waitlisted';
+                $waitlist = $waitlistService->addToWaitlist($user, $event);
+
+                if (!$waitlist) {
+                    return back()->with('error', 'Unable to add you to the waitlist.');
+                }
+
+                return back()->with('success', 'You have been added to the waitlist. We will notify you if a spot becomes available.');
             } else {
                 return back()->with('error', 'This event is full and waitlist is not available.');
             }
@@ -81,6 +88,13 @@ class EventController extends Controller
             'event_id' => $event->id,
             'status' => $status,
         ]);
+
+        // Send confirmation email
+        try {
+            $emailService->sendRegistrationConfirmation($user, $event);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send registration confirmation email: ' . $e->getMessage());
+        }
 
         $message = $status === 'waitlisted'
             ? 'You have been added to the waitlist.'
@@ -97,6 +111,7 @@ class EventController extends Controller
 
         if ($registration) {
             $registration->update(['status' => 'cancelled']);
+            app(EmailNotificationService::class)->sendRegistrationCancellation(Auth::user(), $event);
             
             // Promote next waitlist member if event has waitlist enabled
             if ($event->waitlist_enabled) {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Services\EmailNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -78,9 +79,19 @@ class EventsController extends Controller
     /**
      * Update an event.
      */
-    public function update(Request $request, Event $event)
+    public function update(Request $request, Event $event, EmailNotificationService $emailService)
     {
-        $event->update($this->eventData($request));
+        $data = $this->eventData($request);
+        $event->fill($data);
+        $notifyParticipants = $event->status === 'published'
+            && $event->isDirty(['title', 'start_date', 'end_date', 'location', 'meeting_link', 'venue_notes']);
+
+        $event->save();
+
+        if ($notifyParticipants) {
+            $event->registrations()->whereIn('status', ['registered', 'attended'])->with('user')->get()
+                ->each(fn ($registration) => $emailService->sendEventUpdate($registration->user, $event));
+        }
 
         $message = $event->status === 'published' ? 'updated and published' : 'updated as draft';
         $request->session()->flash('success', 'Event "' . $event->title . '" has been ' . $message . '.');
@@ -91,9 +102,11 @@ class EventsController extends Controller
     /**
      * Delete an event.
      */
-    public function destroy(Request $request, Event $event)
+    public function destroy(Request $request, Event $event, EmailNotificationService $emailService)
     {
         $title = $event->title;
+        $event->registrations()->whereIn('status', ['registered', 'attended'])->with('user')->get()
+            ->each(fn ($registration) => $emailService->sendEventCancellation($registration->user, $event));
         $event->delete();
 
         $request->session()->flash('success', 'Event "' . $title . '" has been deleted.');

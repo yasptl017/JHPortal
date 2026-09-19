@@ -2,273 +2,128 @@
 
 namespace App\Services;
 
+use App\Models\EmailConfiguration;
 use App\Models\EmailLog;
 use App\Models\Event;
 use App\Models\User;
+use App\Models\UserNotificationPreference;
 use Illuminate\Support\Facades\Mail;
 
 class EmailNotificationService
 {
-    /**
-     * Send registration confirmation email
-     */
     public function sendRegistrationConfirmation(User $user, Event $event): bool
     {
-        try {
-            $subject = "Registration Confirmation - {$event->title}";
-            $body = $this->buildRegistrationConfirmationBody($user, $event);
-
-            $emailLog = EmailLog::create([
-                'user_id' => $user->id,
-                'event_id' => $event->id,
-                'recipient_email' => $user->email,
-                'subject' => $subject,
-                'type' => 'registration_confirmation',
-                'status' => 'pending',
-                'body' => $body,
-            ]);
-
-            // Send email (using Mail facade or queue)
-            Mail::raw($body, function ($message) use ($user, $subject) {
-                $message->to($user->email)
-                    ->subject($subject)
-                    ->from(config('mail.from.address'), config('mail.from.name'));
-            });
-
-            $emailLog->markAsSent();
-            return true;
-        } catch (\Exception $e) {
-            $emailLog->markAsFailed($e->getMessage());
-            return false;
-        }
+        return $this->send($user, $event, 'registration_confirmation', "Registration Confirmation - {$event->title}", $this->registrationConfirmationBody($user, $event));
     }
 
-    /**
-     * Send event reminder email
-     */
+    public function sendRegistrationCancellation(User $user, Event $event): bool
+    {
+        return $this->send($user, $event, 'registration_cancellation', "Registration Cancelled - {$event->title}", $this->standardBody('Registration Cancelled', $user, $event, 'Your registration has been cancelled. If this was not intended, please contact us.'));
+    }
+
     public function sendEventReminder(User $user, Event $event): bool
     {
-        try {
-            $subject = "Reminder: {$event->title} is coming up!";
-            $body = $this->buildEventReminderBody($user, $event);
-
-            $emailLog = EmailLog::create([
-                'user_id' => $user->id,
-                'event_id' => $event->id,
-                'recipient_email' => $user->email,
-                'subject' => $subject,
-                'type' => 'event_reminder',
-                'status' => 'pending',
-                'body' => $body,
-            ]);
-
-            Mail::raw($body, function ($message) use ($user, $subject) {
-                $message->to($user->email)
-                    ->subject($subject)
-                    ->from(config('mail.from.address'), config('mail.from.name'));
-            });
-
-            $emailLog->markAsSent();
-            return true;
-        } catch (\Exception $e) {
-            $emailLog->markAsFailed($e->getMessage());
-            return false;
-        }
+        return $this->send($user, $event, 'event_reminder', "Reminder: {$event->title} is coming up!", $this->standardBody('Event Reminder', $user, $event, $event->reminder_message ?: 'This is a friendly reminder that your event is coming up soon.'));
     }
 
-    /**
-     * Send feedback request email
-     */
     public function sendFeedbackRequest(User $user, Event $event): bool
     {
-        try {
-            $subject = "Share Your Feedback - {$event->title}";
-            $body = $this->buildFeedbackRequestBody($user, $event);
+        $url = route('feedback.create', $event);
+        $message = $event->feedback_message ?: 'Thank you for attending. We would love to hear your feedback.';
+        $body = $this->standardBody('Share Your Feedback', $user, $event, $message) . $this->button($url, 'Share Your Feedback');
 
-            $emailLog = EmailLog::create([
-                'user_id' => $user->id,
-                'event_id' => $event->id,
-                'recipient_email' => $user->email,
-                'subject' => $subject,
-                'type' => 'feedback_request',
-                'status' => 'pending',
-                'body' => $body,
-            ]);
-
-            Mail::raw($body, function ($message) use ($user, $subject) {
-                $message->to($user->email)
-                    ->subject($subject)
-                    ->from(config('mail.from.address'), config('mail.from.name'));
-            });
-
-            $emailLog->markAsSent();
-            return true;
-        } catch (\Exception $e) {
-            $emailLog->markAsFailed($e->getMessage());
-            return false;
-        }
+        return $this->send($user, $event, 'feedback_request', "Share Your Feedback - {$event->title}", $body);
     }
 
-    /**
-     * Send waitlist notification email
-     */
     public function sendWaitlistNotification(User $user, Event $event): bool
     {
-        try {
-            $subject = "Spot Available - {$event->title}";
-            $body = $this->buildWaitlistNotificationBody($user, $event);
+        $url = route('events.register', $event);
+        $message = $event->waitlist_message ?: 'Great news! A spot has become available.';
+        $body = $this->standardBody('Spot Available', $user, $event, $message) . $this->button($url, 'Register Now');
 
-            $emailLog = EmailLog::create([
-                'user_id' => $user->id,
-                'event_id' => $event->id,
-                'recipient_email' => $user->email,
-                'subject' => $subject,
-                'type' => 'waitlist_notification',
-                'status' => 'pending',
-                'body' => $body,
-            ]);
-
-            Mail::raw($body, function ($message) use ($user, $subject) {
-                $message->to($user->email)
-                    ->subject($subject)
-                    ->from(config('mail.from.address'), config('mail.from.name'));
-            });
-
-            $emailLog->markAsSent();
-            return true;
-        } catch (\Exception $e) {
-            $emailLog->markAsFailed($e->getMessage());
-            return false;
-        }
+        return $this->send($user, $event, 'waitlist_notification', "Spot Available - {$event->title}", $body);
     }
 
-    /**
-     * Build registration confirmation email body
-     */
-    private function buildRegistrationConfirmationBody(User $user, Event $event): string
-    {
-        return <<<HTML
-        <h2>Registration Confirmation</h2>
-        <p>Dear {$user->name},</p>
-        <p>Thank you for registering for <strong>{$event->title}</strong>!</p>
-        <p><strong>Event Details:</strong></p>
-        <ul>
-            <li>Date & Time: {$event->event_date->format('M d, Y H:i')}</li>
-            <li>Location: {$event->location}</li>
-            <li>Category: {$event->category}</li>
-        </ul>
-        <p>We look forward to seeing you there!</p>
-        <p>Best regards,<br>Jewish House Team</p>
-        HTML;
-    }
-
-    /**
-     * Build event reminder email body
-     */
-    private function buildEventReminderBody(User $user, Event $event): string
-    {
-        $daysUntil = now()->diffInDays($event->start_date);
-        return <<<HTML
-        <h2>Event Reminder</h2>
-        <p>Dear {$user->name},</p>
-        <p>This is a friendly reminder that <strong>{$event->title}</strong> is coming up in {$daysUntil} days!</p>
-        <p><strong>Event Details:</strong></p>
-        <ul>
-            <li>Date & Time: {$event->event_date->format('M d, Y H:i')}</li>
-            <li>Location: {$event->location}</li>
-        </ul>
-        <p>We hope to see you soon!</p>
-        <p>Best regards,<br>Jewish House Team</p>
-        HTML;
-    }
-
-    /**
-     * Build feedback request email body
-     */
-    private function buildFeedbackRequestBody(User $user, Event $event): string
-    {
-        $feedbackUrl = route('feedback.create', $event);
-        return <<<HTML
-        <h2>Share Your Feedback</h2>
-        <p>Dear {$user->name},</p>
-        <p>Thank you for attending <strong>{$event->title}</strong>!</p>
-        <p>We would love to hear your feedback about the event. Your input helps us improve future events.</p>
-        <p><a href="{$feedbackUrl}" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Share Your Feedback</a></p>
-        <p>Best regards,<br>Jewish House Team</p>
-        HTML;
-    }
-
-    /**
-     * Build waitlist notification email body
-     */
-    private function buildWaitlistNotificationBody(User $user, Event $event): string
-    {
-        $registerUrl = route('events.register', $event);
-        return <<<HTML
-        <h2>Spot Available!</h2>
-        <p>Dear {$user->name},</p>
-        <p>Great news! A spot has become available for <strong>{$event->title}</strong>.</p>
-        <p><strong>Event Details:</strong></p>
-        <ul>
-            <li>Date & Time: {$event->start_date?->format('M d, Y H:i')}</li>
-            <li>Location: {$event->location}</li>
-        </ul>
-        <p><a href="{$registerUrl}" style="background-color: #10b981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Register Now</a></p>
-        <p>Best regards,<br>Jewish House Team</p>
-        HTML;
-    }
-
-    /**
-     * Send waitlist reminder email
-     */
     public function sendWaitlistReminder(User $user, Event $event, string $timeframe): bool
     {
+        $url = route('waitlist.confirm', $event);
+        $body = $this->standardBody('Confirm Your Spot', $user, $event, "You have {$timeframe} remaining to confirm your available spot before it expires.") . $this->button($url, 'Confirm Your Spot');
+
+        return $this->send($user, $event, 'waitlist_reminder', "Reminder: Confirm Your Spot - {$event->title}", $body);
+    }
+
+    public function sendEventUpdate(User $user, Event $event): bool
+    {
+        return $this->send($user, $event, 'event_updated', "Event Updated - {$event->title}", $this->standardBody('Event Updated', $user, $event, 'Details for this event have changed. Please review the updated date, time, and location below.'));
+    }
+
+    public function sendEventCancellation(User $user, Event $event): bool
+    {
+        return $this->send($user, $event, 'event_cancelled', "Event Cancelled - {$event->title}", $this->standardBody('Event Cancelled', $user, $event, 'We are sorry to let you know that this event has been cancelled.'));
+    }
+
+    private function send(User $user, Event $event, string $type, string $subject, string $body): bool
+    {
+        if (!$this->shouldSend($user, $event, $type)) {
+            return false;
+        }
+
+        $log = EmailLog::create([
+            'user_id' => $user->id,
+            'event_id' => $event->id,
+            'recipient_email' => $user->email,
+            'subject' => $subject,
+            'type' => $type,
+            'status' => 'pending',
+            'body' => $body,
+        ]);
+
         try {
-            $subject = "Reminder: Confirm Your Spot - {$event->title}";
-            $body = $this->buildWaitlistReminderBody($user, $event, $timeframe);
-
-            $emailLog = EmailLog::create([
-                'user_id' => $user->id,
-                'event_id' => $event->id,
-                'recipient_email' => $user->email,
-                'subject' => $subject,
-                'type' => 'waitlist_reminder',
-                'status' => 'pending',
-                'body' => $body,
-            ]);
-
-            Mail::raw($body, function ($message) use ($user, $subject) {
-                $message->to($user->email)
-                    ->subject($subject)
-                    ->from(config('mail.from.address'), config('mail.from.name'));
+            EmailConfiguration::getActive()?->applyToConfig();
+            Mail::html($body, function ($message) use ($user, $subject) {
+                $message->to($user->email)->subject($subject)->from(config('mail.from.address'), config('mail.from.name'));
             });
-
-            $emailLog->markAsSent();
+            $log->markAsSent();
             return true;
-        } catch (\Exception $e) {
-            $emailLog->markAsFailed($e->getMessage());
+        } catch (\Throwable $exception) {
+            $log->markAsFailed($exception->getMessage());
+            report($exception);
             return false;
         }
     }
 
-    /**
-     * Build waitlist reminder email body
-     */
-    private function buildWaitlistReminderBody(User $user, Event $event, string $timeframe): string
+    private function shouldSend(User $user, Event $event, string $type): bool
     {
-        $confirmUrl = route('waitlist.confirm', $event);
-        return <<<HTML
-        <h2>Reminder: Confirm Your Spot</h2>
-        <p>Dear {$user->name},</p>
-        <p>This is a reminder that you have a spot available for <strong>{$event->title}</strong>.</p>
-        <p>You have {$timeframe} remaining to confirm your spot before it expires.</p>
-        <p><strong>Event Details:</strong></p>
-        <ul>
-            <li>Date & Time: {$event->start_date->format('M d, Y H:i')}</li>
-            <li>Location: {$event->location}</li>
-        </ul>
-        <p><a href="{$confirmUrl}" style="background-color: #10b981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Confirm Your Spot</a></p>
-        <p>Best regards,<br>Jewish House Team</p>
-        HTML;
+        if ($event->email_status === 'disabled') {
+            return false;
+        }
+
+        $preferences = UserNotificationPreference::forUser($user);
+
+        return match ($type) {
+            'registration_confirmation', 'registration_cancellation' => $preferences->wantsRegistrationConfirmations(),
+            'event_reminder', 'event_updated', 'event_cancelled' => $preferences->wantsEventReminders(),
+            'feedback_request' => $preferences->wantsFeedbackNotifications(),
+            'waitlist_notification', 'waitlist_reminder' => $preferences->wantsWaitlistNotifications(),
+            default => $preferences->email_notifications,
+        };
+    }
+
+    private function registrationConfirmationBody(User $user, Event $event): string
+    {
+        return $this->standardBody('Registration Confirmation', $user, $event, $event->confirmation_message ?: 'Thank you for registering. We look forward to seeing you!');
+    }
+
+    private function standardBody(string $heading, User $user, Event $event, string $message): string
+    {
+        $date = $event->start_date?->format('M d, Y H:i') ?? 'To be confirmed';
+        $location = e($event->location ?: 'To be confirmed');
+
+        return '<h2>' . e($heading) . '</h2><p>Dear ' . e($user->name) . ',</p><p>' . nl2br(e($message)) . '</p><p><strong>' . e($event->title) . '</strong><br>Date &amp; time: ' . e($date) . '<br>Location: ' . $location . '</p><p>Best regards,<br>Jewish House Team</p>';
+    }
+
+    private function button(string $url, string $label): string
+    {
+        return '<p><a href="' . e($url) . '" style="background:#2563eb;color:#fff;padding:10px 20px;text-decoration:none;border-radius:5px;display:inline-block">' . e($label) . '</a></p>';
     }
 }

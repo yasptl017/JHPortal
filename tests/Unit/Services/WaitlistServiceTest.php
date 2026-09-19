@@ -97,7 +97,8 @@ class WaitlistServiceTest extends TestCase
         ]);
 
         $this->emailService->expects($this->once())
-            ->method('sendWaitlistNotification');
+            ->method('sendWaitlistNotification')
+            ->willReturn(true);
 
         $result = $this->waitlistService->notifyWaitlistMember($waitlist);
 
@@ -173,7 +174,8 @@ class WaitlistServiceTest extends TestCase
         ]);
 
         $this->emailService->expects($this->once())
-            ->method('sendWaitlistNotification');
+            ->method('sendWaitlistNotification')
+            ->willReturn(true);
 
         $promoted = $this->waitlistService->promoteNextWaitlistMember($event);
 
@@ -324,7 +326,8 @@ class WaitlistServiceTest extends TestCase
         }
 
         $this->emailService->expects($this->exactly(3))
-            ->method('sendWaitlistNotification');
+            ->method('sendWaitlistNotification')
+            ->willReturn(true);
 
         $notified = $this->waitlistService->bulkNotifyWaitlist($event);
 

@@ -70,6 +70,23 @@ class FeedbackController extends Controller
 
         Feedback::create($feedbackData);
 
+        // Mark feedback reminder as completed
+        $this->markFeedbackReminderCompleted($event, Auth::user());
+
         return redirect()->route('events.show', $event)->with('success', 'Thank you for your feedback!');
+    }
+
+    /**
+     * Mark feedback reminder as completed
+     */
+    private function markFeedbackReminderCompleted(Event $event, $user): void
+    {
+        $reminder = \App\Models\FeedbackReminder::where('event_id', $event->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($reminder) {
+            $reminder->markAsCompleted();
+        }
     }
 }

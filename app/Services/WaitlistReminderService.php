@@ -91,12 +91,11 @@ class WaitlistReminderService
     private function sendWaitlistReminder(Waitlist $waitlist, string $timeframe): bool
     {
         try {
-            $this->emailService->sendWaitlistReminder(
+            return $this->emailService->sendWaitlistReminder(
                 $waitlist->user,
                 $waitlist->event,
                 $timeframe
             );
-            return true;
         } catch (\Exception $e) {
             \Log::error("Failed to send waitlist reminder: {$e->getMessage()}");
             return false;

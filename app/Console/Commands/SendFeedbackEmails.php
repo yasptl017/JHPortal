@@ -27,13 +27,11 @@ class SendFeedbackEmails extends Command
         $sent = 0;
         $failed = 0;
 
-        // Find events that ended in the last 24 hours
-        $events = Event::where('status', 'published')
-            ->whereBetween('end_date', [
-                now()->subHours(24),
-                now()
-            ])
-            ->get();
+        $events = Event::where('status', 'published')->where('email_status', 'enabled')
+            ->whereNotNull('end_date')->get()->filter(function (Event $event) {
+                $hours = ['2h' => 2, '24h' => 24, '48h' => 48][$event->feedback_offset] ?? 24;
+                return $event->end_date->between(now()->subHours($hours)->subMinutes(15), now()->subHours($hours)->addMinutes(15));
+            });
 
         foreach ($events as $event) {
             // Get registered users who attended
@@ -65,18 +63,30 @@ class SendFeedbackEmails extends Command
                 }
 
                 try {
-                    $emailService->sendFeedbackRequest($user, $event);
+                    // Check if email was actually sent before creating reminder
+                    $emailSent = $emailService->sendFeedbackRequest($user, $event);
                     
-                    EmailReminder::create([
-                        'event_id' => $event->id,
-                        'user_id' => $user->id,
-                        'type' => 'feedback_request',
-                        'scheduled_at' => now(),
-                        'sent_at' => now(),
-                        'status' => 'sent',
-                    ]);
-
-                    $sent++;
+                    if ($emailSent) {
+                        EmailReminder::create([
+                            'event_id' => $event->id,
+                            'user_id' => $user->id,
+                            'type' => 'feedback_request',
+                            'scheduled_at' => now(),
+                            'sent_at' => now(),
+                            'status' => 'sent',
+                        ]);
+                        $sent++;
+                    } else {
+                        EmailReminder::create([
+                            'event_id' => $event->id,
+                            'user_id' => $user->id,
+                            'type' => 'feedback_request',
+                            'scheduled_at' => now(),
+                            'status' => 'failed',
+                            'error_message' => 'Email service returned false',
+                        ]);
+                        $failed++;
+                    }
                 } catch (\Exception $e) {
                     EmailReminder::create([
                         'event_id' => $event->id,

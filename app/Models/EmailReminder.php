@@ -51,6 +51,15 @@ class EmailReminder extends Model
         ]);
     }
 
+    public function markAsCompleted(): void
+    {
+        $this->update([
+            'status' => 'completed',
+            'sent_at' => now(),
+            'error_message' => null,
+        ]);
+    }
+
     public function scopePending($query)
     {
         return $query->where('status', 'pending')

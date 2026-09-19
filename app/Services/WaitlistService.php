@@ -82,8 +82,11 @@ class WaitlistService
             return false;
         }
 
+        if (!$this->emailService->sendWaitlistNotification($waitlist->user, $waitlist->event)) {
+            return false;
+        }
+
         $waitlist->markAsNotified();
-        $this->emailService->sendWaitlistNotification($waitlist->user, $waitlist->event);
 
         return true;
     }

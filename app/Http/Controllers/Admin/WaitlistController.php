@@ -53,7 +53,9 @@ class WaitlistController extends Controller
             return back()->with('error', 'Only pending waitlist members can be notified.');
         }
 
-        $this->waitlistService->notifyWaitlistMember($waitlist);
+        if (!$this->waitlistService->notifyWaitlistMember($waitlist)) {
+            return back()->with('error', 'Unable to send the waitlist email. The entry remains pending.');
+        }
 
         return back()->with('success', 'Waitlist member notified via email.');
     }
