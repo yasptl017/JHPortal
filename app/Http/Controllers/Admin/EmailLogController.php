@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\EmailConfiguration;
 use App\Models\EmailLog;
 use Illuminate\Http\Request;
 
@@ -41,6 +42,8 @@ class EmailLogController extends Controller
 
     public function show(EmailLog $emailLog)
     {
+        $emailLog->loadMissing('user', 'event');
+
         return view('admin.email-logs.show', compact('emailLog'));
     }
 
@@ -51,7 +54,9 @@ class EmailLogController extends Controller
         }
 
         try {
-            \Mail::raw($emailLog->body, function ($message) use ($emailLog) {
+            EmailConfiguration::getActive()?->applyToConfig();
+
+            \Mail::html($emailLog->body, function ($message) use ($emailLog) {
                 $message->to($emailLog->recipient_email)
                     ->subject($emailLog->subject)
                     ->from(config('mail.from.address'), config('mail.from.name'));

@@ -42,10 +42,10 @@ class EmailConfiguration extends Model
             'mail.mailers.smtp.port' => $this->port,
             'mail.mailers.smtp.username' => $this->username,
             'mail.mailers.smtp.password' => $this->password,
-            // Laravel 13's SMTP transport uses "scheme" (tls/ssl), not an
-            // "encryption" option. Keeping this aligned makes Admin Email
-            // Settings effective for every notification send.
-            'mail.mailers.smtp.scheme' => $this->encryption,
+            // Symfony Mailer expects transport schemes rather than the labels
+            // used in the admin form. Port 587 uses STARTTLS over smtp; port
+            // 465 uses implicit TLS via smtps.
+            'mail.mailers.smtp.scheme' => $this->encryption === 'ssl' ? 'smtps' : 'smtp',
             'mail.from.address' => $this->from_address,
             'mail.from.name' => $this->from_name,
         ]);
