@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\EventRegistration;
 use App\Models\User;
+use App\Services\EmailNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -37,7 +38,7 @@ class AuthController extends Controller
         return view('frontend.auth.register');
     }
 
-    public function register(Request $request)
+    public function register(Request $request, EmailNotificationService $emailService)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -52,6 +53,8 @@ class AuthController extends Controller
             'phone' => $validated['phone'] ?? null,
             'password' => Hash::make($validated['password']),
         ]);
+
+        $emailService->sendWelcomeEmail($user);
 
         Auth::login($user);
 

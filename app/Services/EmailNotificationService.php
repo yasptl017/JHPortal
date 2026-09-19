@@ -11,6 +11,17 @@ use Illuminate\Support\Facades\Mail;
 
 class EmailNotificationService
 {
+    public function sendWelcomeEmail(User $user): bool
+    {
+        return $this->send(
+            $user,
+            null,
+            'general',
+            'Welcome to Jewish House',
+            $this->welcomeBody($user),
+        );
+    }
+
     public function sendRegistrationConfirmation(User $user, Event $event): bool
     {
         return $this->send($user, $event, 'registration_confirmation', "Registration Confirmation - {$event->title}", $this->registrationConfirmationBody($user, $event));
@@ -62,7 +73,7 @@ class EmailNotificationService
         return $this->send($user, $event, 'event_cancelled', "Event Cancelled - {$event->title}", $this->standardBody('Event Cancelled', $user, $event, 'We are sorry to let you know that this event has been cancelled.'));
     }
 
-    private function send(User $user, Event $event, string $type, string $subject, string $body): bool
+    private function send(User $user, ?Event $event, string $type, string $subject, string $body): bool
     {
         if (!$this->shouldSend($user, $event, $type)) {
             return false;
@@ -92,9 +103,9 @@ class EmailNotificationService
         }
     }
 
-    private function shouldSend(User $user, Event $event, string $type): bool
+    private function shouldSend(User $user, ?Event $event, string $type): bool
     {
-        if ($event->email_status === 'disabled') {
+        if ($event?->email_status === 'disabled') {
             return false;
         }
 
@@ -112,6 +123,11 @@ class EmailNotificationService
     private function registrationConfirmationBody(User $user, Event $event): string
     {
         return $this->standardBody('Registration Confirmation', $user, $event, $event->confirmation_message ?: 'Thank you for registering. We look forward to seeing you!');
+    }
+
+    private function welcomeBody(User $user): string
+    {
+        return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="margin:0;background:#f4f6f8;font-family:Arial,sans-serif;color:#1f2937"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:32px 16px"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden"><tr><td style="padding:28px 32px;background:#1d4ed8;color:#ffffff"><h1 style="margin:0;font-size:24px">Welcome to Jewish House</h1></td></tr><tr><td style="padding:32px"><p style="margin-top:0">Dear ' . e($user->name) . ',</p><p>Your account has been created successfully. You can now register for upcoming events and manage your bookings from your profile.</p><p style="margin-bottom:0">We look forward to welcoming you at Jewish House.<br><br>Best regards,<br>Jewish House Team</p></td></tr></table></td></tr></table></body></html>';
     }
 
     private function standardBody(string $heading, User $user, Event $event, string $message): string
