@@ -1,0 +1,16 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Never expose environment/config/source files
+    RewriteRule ^(\.env.*|\.git.*|composer\.(json|lock)|artisan|package(-lock)?\.json|vite\.config\.js|phpunit\.xml)$ - [F,L]
+    RewriteRule ^(app|bootstrap|config|database|resources|routes|tests|vendor|Requirements|node_modules)(/|$) - [F,L]
+
+    # Serve real files from public/ directly
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -f
+    RewriteRule ^(.*)$ public/$1 [L]
+
+    # Everything else goes through Laravel's front controller
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/index.php [L]
+</IfModule>
